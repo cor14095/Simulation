@@ -14,12 +14,12 @@ def sumaDe(lista, fin):
     return suma
 
 # Function to make histograms     
-def histograma(lst, iterations, n):
+def histograma(lst, iterations, n, intervalos):
     print " Histograma"
     print "  Con: "+str(iterations)+" iteraciones"
     print ""
     for i in range(1,n+1):
-        print str(i) +':' + ('*'*((lst[i-1]*100)/iterations)) + '    (' + str(lst[i-1]) + ', ' + str((lst[i-1]*100)/float(iterations)) + "%)"
+        print str( intervalos[i-1] ) +' : ' + ('*'*((lst[i-1]*100)/iterations)) + '    (' + str(lst[i-1]) + ', ' + str((lst[i-1]*100)/float(iterations)) + "%)"
     print "------------------------------------------------------------"
 
 # Variables importantes
@@ -69,7 +69,7 @@ else:
     # FIN FOR
 # Vemos si fue un intervalo valido para hace run histograma    
 if (not(flag)):
-    histograma(valoresIntervalos, n, len(valoresIntervalos))
+    histograma(valoresIntervalos, n, len(valoresIntervalos), listaIntervalos)
 # Sino, es un error.
 else: 
     print "Error en sus datos, la suma es: " + str( sum( listaIntervalos ) )
