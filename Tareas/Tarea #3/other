@@ -1,0 +1,119 @@
+import math
+import random
+
+# Funcion para calcular 
+def T(s, lamda):
+    return s - ((1/(lamda * 1.0)) * math.log(random.random()))
+
+# Funcion para calcular el tiempo de atencion
+def generarY(lamda):
+    return -((1/(lamda * 1.0)) * math.log(1 - random.random()))
+    
+# Primero buscamos cuantos servidores queremos utilizar
+servsNum = 10
+# Tiempo t.
+t = 0
+# Tiempo temporal
+tt = 0
+# Servidor que se estara usando
+server = 0
+# Numero de llegadas al tiempo t
+Na = 0
+# Numero de salidas al tiempo t
+C = [0] * servsNum
+# Numero de solicitudes en el sistema al tiempo t
+n = [0] * (servsNum)
+# Tiempo extra en el servidor.
+tp = 0
+# Tiempo en que llega la solicitud
+ta = T(0, 40)
+# Tiempo en el que sale la solicitud
+td = [float("inf")] * servsNum
+# Tiempo de llegada de la i-esima solicitud
+A = []
+# Tiempo de salida de la i-esima solicitud
+D = []
+# Tiempo de cada solicitud en cola
+SC = []
+# Cantidad de solicitudes en cola en el instante t
+S = []
+# Promedio de tiempo en cola
+meanC = [0] * (servsNum)
+# Total de tiempo en cola
+sumC = [0] * (servsNum)
+# Numero de solicitudes atendidas.
+numReq = 0
+# Tiempo ocupado
+tOn = [0] * (servsNum)
+# Tiempo desocupado
+tOff = [0] * (servsNum)
+# Tiempo maximo en segundos.
+t_max = 3600    # Una hora.
+# Lambda
+lamda = 40.0;
+
+# Ciclo principal
+while ((t <= t_max) or (sum(n) >= 0)):
+    # Primero buscamos un servidor desocupado o el menos ocupado.
+    server = min(n)
+    server = n.index(server)
+    
+    # Caso 1: El siguiente evento es una llegada 
+    # de una solicitud al sistema, y aun no es la 
+    # hora de cierre.
+    if ( (ta <= td[server]) and (ta <= t_max)):
+        tt += ta - t
+        t = ta
+        A.append(ta)
+        Na += 1
+        numReq += 1
+        ta = T(t, lamda)
+        n[server] += 1
+        if (n[server] == 1):
+            # Medimos el tiempo en que el servidor no hace nada.
+            if (len(D) == 0):
+                tOff[server] += A[len(A) - 1]
+            else:
+                tOff[server] += A[len(A) - 1] - D[len(D) - 1]
+            td[server] = t + generarY(lamda)
+    # Caso 2: El siguiente evento es una salida de 
+    # una solicitud del sistema, y aun no es la 
+    # hora de cierre.
+    elif ( (td[server] < ta) and (td[server] <= t_max)):
+        tt += td[server] - t
+        t = td[server]
+        n[server] -= 1
+        C[server] += 1
+        SC.append(t - A[C[server] - 1])
+        if (n[server] == 0):
+            td[server] = float("inf")
+        else:
+            td[server] = t + generarY(lamda)
+        D.append(t)
+    # Caso 3: El proximo evento ocurre luego de la 
+    # hora de cierre, y aun hay solicitudes en el sistema.
+    elif ( (min(ta,td[server]) > t_max) and (sum(n) > 0)):
+        tt += td[server] - t
+        t = td[server]
+        n[server] -= 1
+        C[server] += 1
+        SC.append(t - A[C[server] - 1])
+        if (n[server] > 0):
+            td[server] = t + generarY(lamda)
+        D.append(t)
+    # Caso 4: El proximo evento ocurre luego de la 
+    # hora de cierre, y ya no hay solicitudes en cola.
+    else:
+        tp = max(t - t_max, 0)
+        break
+    
+    if (tt >= 1):
+        S.append(sum(n))
+        tt = 0
+        
+print "Tiempo total:\t\t\t\t\t", t, "s"
+print "Tiempo extra:\t\t\t\t\t", tp, "s"
+print "Llegadas:\t\t\t\t\t", Na, "\nSalidas:\t\t\t\t\t", sum(C), "\nEn cola:\t\t\t\t\t", sum(n)
+for i in range(len(C)):
+    print "Servidor", i + 1,":\nAtendio:\t\t\t\t\t", C[i],"solicitudes", "\nTiempo apagado:\t\t\t\t\t", tOff[i], "\nTiempo encendido:\t\t\t\t\t", t_max - tOff[i]
+print "Solicitudes atendidas:", Na - sum(n)
